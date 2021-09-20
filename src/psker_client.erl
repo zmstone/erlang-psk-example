@@ -36,8 +36,7 @@ init([]) ->
             {versions, ['tlsv1.2', 'tlsv1.1']}, %% can not use tlsv1.3 for psk
             {psk_identity, atom_to_list(name())},
             {user_lookup_fun, {fun psker:lookup/3, #{}}},
-            {ciphers, psker:psk_suites()},
-            %{ciphers, ssl:cipher_suites(exclusive, 'tlsv1.3', openssl)},
+            {ciphers, psker:cipher_suites(client)},
             {log_level, debug}
            ],
     {ok, Socket} = ssl:connect("localhost", 9999, Opts, infinity),

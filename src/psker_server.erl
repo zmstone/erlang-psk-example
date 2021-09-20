@@ -38,7 +38,7 @@ init([]) ->
                           {versions, ['tlsv1.2', 'tlsv1.1']}, %% can not use tlsv1.3 for psk
                           {psk_identity, atom_to_list(name())},
                           {user_lookup_fun, {fun psker:lookup/3, #{}}},
-                          {ciphers, psker:psk_suites()},
+                          {ciphers, psker:cipher_suites(server)},
                           {active, true},
                           {log_level, debug}
                          ]),
