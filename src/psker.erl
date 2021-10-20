@@ -10,6 +10,7 @@ lookup(psk, PSKIdentity, UserState) ->
 cipher_suites(server) ->
     ssl:cipher_suites(all, 'tlsv1.2', openssl);
 cipher_suites(client) ->
+    ssl:cipher_suites(all, 'tlsv1.2', openssl) ++
     ["RSA-PSK-AES256-GCM-SHA384","RSA-PSK-AES256-CBC-SHA384",
      "RSA-PSK-AES128-GCM-SHA256","RSA-PSK-AES128-CBC-SHA256",
      "RSA-PSK-AES256-CBC-SHA","RSA-PSK-AES128-CBC-SHA",

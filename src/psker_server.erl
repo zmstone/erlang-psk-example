@@ -27,7 +27,7 @@ code_change(_Vsn, State, Data, _Extra) ->
 
 init([]) ->
     {ok, Pwd} = file:get_cwd(),
-    TlsFile = fun(Name) -> filename:join([Pwd, tls, Name]) end,
+    TlsFile = fun(Name) -> filename:join([Pwd, ecc, Name]) end,
     io:format(user, "[server] pwd=~p~n", [Pwd]),
     {ok, ListenSock} =
         ssl:listen(9999, [{cacertfile, TlsFile("ca.pem")},
@@ -38,7 +38,8 @@ init([]) ->
                           {versions, ['tlsv1.2', 'tlsv1.1']}, %% can not use tlsv1.3 for psk
                           {psk_identity, atom_to_list(name())},
                           {user_lookup_fun, {fun psker:lookup/3, #{}}},
-                          {ciphers, psker:cipher_suites(server)},
+                          %{ciphers, psker:cipher_suites(server)},
+                          {eccs, ssl:eccs()},
                           {active, true},
                           {log_level, debug}
                          ]),

@@ -28,7 +28,7 @@ code_change(_Vsn, State, Data, _Extra) ->
 init([]) ->
     {ok, Pwd} = file:get_cwd(),
     io:format(user, "[client] pwd=~p~n", [Pwd]),
-    TlsFile = fun(Name) -> filename:join([Pwd, tls, Name]) end,
+    TlsFile = fun(Name) -> filename:join([Pwd, ecc, Name]) end,
     Opts = [{cacertfile, TlsFile("ca.pem")},
             {certfile, TlsFile("client.pem")},
             {keyfile, TlsFile("client.key")},
