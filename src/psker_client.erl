@@ -33,13 +33,21 @@ init([]) ->
             {certfile, TlsFile("client.pem")},
             {keyfile, TlsFile("client.key")},
             {verify, verify_peer},
-            {versions, ['tlsv1.2', 'tlsv1.1']}, %% can not use tlsv1.3 for psk
+            {protocol, psker:protocol()},
+            {versions, psker:versions()},
             {psk_identity, atom_to_list(name())},
             {user_lookup_fun, {fun psker:lookup/3, #{}}},
             {ciphers, psker:cipher_suites(client)},
             {log_level, debug}
            ],
-    {ok, Socket} = ssl:connect("localhost", 9999, Opts, infinity),
+    io:format(user, "[client] connecting to server ~s:~p~n", [server_host(), server_port()]),
+    {ok, Socket} =
+        try
+            ssl:connect(server_host(), server_port(), Opts, infinity)
+        catch
+            C:E:ST->
+                error({C, E, ST})
+        end,
     io:format(user, "[client] connected to server~n", []),
     {ok, _State = connected, _Data = #{socket => Socket},
      [{state_timeout, 100, send}]}.
@@ -47,10 +55,17 @@ init([]) ->
 callback_mode() ->
     handle_event_function.
 
-
 handle_event(state_timeout, send, _State, #{socket := Socket}) ->
     ssl:send(Socket, "hey"),
     {keep_state_and_data, [{state_timeout, 5000, send}]};
 handle_event(EventType, Event, _State, _Data) ->
     io:format(user, "[client] ignored event: ~p: ~p~n", [EventType, Event]),
     keep_state_and_data.
+
+server_host() ->
+    case os:getenv("PSKER_SERVER_HOST") of
+        false -> "localhost";
+        Host -> Host
+    end.
+
+server_port() -> psker:server_port().

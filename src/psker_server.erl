@@ -30,23 +30,24 @@ init([]) ->
     TlsFile = fun(Name) -> filename:join([Pwd, tls, Name]) end,
     io:format(user, "[server] pwd=~p~n", [Pwd]),
     {ok, ListenSock} =
-        ssl:listen(9999, [{cacertfile, TlsFile("ca.pem")},
-                          {certfile, TlsFile("server-chain.pem")},
-                          {keyfile, TlsFile("server.key")},
-                          {reuseaddr, true},
-                          {verify, verify_peer},
-                          {versions, ['tlsv1.2', 'tlsv1.1']}, %% can not use tlsv1.3 for psk
-                          {psk_identity, atom_to_list(name())},
-                          {user_lookup_fun, {fun psker:lookup/3, #{}}},
-                          {ciphers, psker:cipher_suites(server)},
-                          {active, true},
-                          {log_level, debug}
-                         ]),
+    ssl:listen(psker:server_port(),
+                   [{cacertfile, TlsFile("ca.pem")},
+                    {certfile, TlsFile("server-chain.pem")},
+                    {keyfile, TlsFile("server.key")},
+                    {protocol, psker:protocol()},
+                    {reuseaddr, true},
+                    {verify, verify_peer},
+                    {versions, psker:versions()},
+                    {psk_identity, atom_to_list(name())},
+                    {user_lookup_fun, {fun psker:lookup/3, #{}}},
+                    {ciphers, psker:cipher_suites(server)},
+                    {active, true},
+                    {log_level, debug}
+                   ]),
     {ok, _State = listening, _Data = #{listening => ListenSock}}.
 
 callback_mode() ->
     [state_enter, handle_event_function].
-
 
 handle_event(enter, _OldState, listening, #{listening := ListenSock} = D) ->
     io:format(user, "[server] listening~n", []),
