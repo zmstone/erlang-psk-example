@@ -6,14 +6,14 @@ A demo application to run TLS/DTLS client & server using PSK (PreShared Key)
 
 ```
 $ export PSKER_START=server
-$ rebar3 shell
+./server.sh
 ```
 
 ## Start client
 
 ```
 $ export PSKER_START=client
-$ rebar3 shell
+./client.sh
 ```
 
 ## Other environment variables
@@ -21,6 +21,7 @@ $ rebar3 shell
 ### For client
 
 * `PSKER_SERVER_HOST`: default localhost, used to specify server hostname
+* `PSKER_CIPHER`: set `rsa` to use RSA cipher suites, `non-rsa` for non-RSA cipher suites, or a specific one e.g. `RSA-PSK-AES256-GCM-SHA384` or `PSK-AES256-GCM-SHA384`.
 
 ### For both server and client
 

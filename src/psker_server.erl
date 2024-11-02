@@ -36,11 +36,10 @@ init([]) ->
                     {keyfile, TlsFile("server.key")},
                     {protocol, psker:protocol()},
                     {reuseaddr, true},
-                    {verify, verify_peer},
+                    {verify, verify_none},
                     {versions, psker:versions()},
-                    {psk_identity, atom_to_list(name())},
-                    {user_lookup_fun, {fun psker:lookup/3, #{}}},
                     {ciphers, psker:cipher_suites(server)},
+                    {user_lookup_fun, {fun psker:lookup/3, #{}}},
                     {active, true},
                     {log_level, debug}
                    ]),
@@ -50,11 +49,24 @@ callback_mode() ->
     [state_enter, handle_event_function].
 
 handle_event(enter, _OldState, listening, #{listening := ListenSock} = D) ->
-    io:format(user, "[server] listening~n", []),
+    io:format(user, "[server] listening on :~p~n", [psker:server_port()]),
     {ok, Socket0} = ssl:transport_accept(ListenSock),
-    {ok, Socket} = ssl:handshake(Socket0),
-    io:format(user, "[server] accpted one client~n~p~n", [ssl:negotiated_protocol(Socket)]),
-    {next_state, listening, D, [{state_timeout, 0, {accepted, Socket}}]};
+    Socket = try
+        {ok, Socket1} = ssl:handshake(Socket0),
+        Socket1
+    catch _:_ ->
+        io:format(user, "[server] failed to accept a client~n", []),
+        failed
+    end,
+    case Socket of
+        failed ->
+            ssl:close(Socket0),
+            {next_state, listening, D, [{state_timeout, 0, failed}]};
+        _ ->
+            {next_state, listening, D, [{state_timeout, 0, {accepted, Socket}}]}
+    end;
+handle_event(state_timeout, failed, listening, D) ->
+    repeat_state_and_data;
 handle_event(state_timeout, {accepted, Sock}, listening, D) ->
     {next_state, accepted, D#{accepted => Sock}};
 handle_event(info, {ssl_closed, Sock}, accepted, #{accepted := Sock} = D) ->

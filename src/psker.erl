@@ -8,12 +8,29 @@ lookup(psk, PSKIdentity, UserState) ->
     {ok, <<"the-shared-secret">>}.
 
 cipher_suites(server) ->
-    ssl:cipher_suites(all, 'tlsv1.2', openssl);
+    ssl:cipher_suites(all, 'tlsv1.2', openssl) ++ non_rsa_ciphers();
 cipher_suites(client) ->
+    case os:getenv("PSKER_CIPHER") of
+        false -> rsa_ciphers() ++ non_rsa_ciphers();
+        "non-rsa" -> non_rsa_ciphers();
+        "rsa" -> rsa_ciphers();
+        Cipher -> [Cipher]
+    end.
+
+rsa_ciphers() ->
     ["RSA-PSK-AES256-GCM-SHA384","RSA-PSK-AES256-CBC-SHA384",
      "RSA-PSK-AES128-GCM-SHA256","RSA-PSK-AES128-CBC-SHA256",
      "RSA-PSK-AES256-CBC-SHA","RSA-PSK-AES128-CBC-SHA",
      "RSA-PSK-DES-CBC3-SHA","RSA-PSK-RC4-SHA"
+    ].
+
+non_rsa_ciphers() ->
+    ["PSK-AES256-GCM-SHA384",
+     "PSK-AES128-GCM-SHA256",
+     "PSK-AES256-CBC-SHA384",
+     "PSK-AES256-CBC-SHA",
+     "PSK-AES128-CBC-SHA256",
+     "PSK-AES128-CBC-SHA"
     ].
 
 protocol() ->
